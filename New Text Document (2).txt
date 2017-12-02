@@ -1,0 +1,1178 @@
+@isTest (SeeAllData=false)
+public class AICT_Priority_FileUploaderControllerTest {
+    
+   static testMethod void Priority_FileUploaderControllerTestMethod(){ 
+       list<AICT_Priority__c> priotlst= AICT_DataFactoryTest.getPriority(50);
+       Test.startTest();
+       String content='';
+       blob blobcontent=blob.valueOf(content);
+           
+     ApexPages.StandardController sc = new ApexPages.StandardController(priotlst[0]);
+     
+     AICT_Priority_FileUploaderController controller=new AICT_Priority_FileUploaderController(sc);
+     controller.contentFileUpload=blobcontent;
+     controller.UploadData();
+       
+       Test.stopTest(); 
+       
+       
+       
+       
+       
+   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@isTest
+public with sharing class AICT_DataFactoryTest {
+    
+    public static list<AICT_Buying_Group__c>  getAICTBuyingGroup() {
+      list<AICT_Buying_Group__c> buygplst=new list<AICT_Buying_Group__c>();
+        for(Integer i=0;i<200;i++){
+           AICT_Buying_Group__c buygp=new AICT_Buying_Group__c();
+           buygp.Name=
+           buygp.Active__c=
+           buygp.Buying_Group_Code__c= 
+           buygp.Buying_Group_External_Id__c=
+           buygp.Country_Code__c=
+         //  buygp.End_Date__c=
+         //  buygp.Start_Date__c=
+           buygplst.add(buygp);   
+            
+        }
+        return buygplst;
+    
+    }
+    public static list<AICT_Bids_and_Tenders__c> getBidsandTenders() {
+        list<AICT_Bids_and_Tenders__c> bidslst=new list<AICT_Bids_and_Tenders__c>();
+        for(Integer i=0;i<200;i++){
+            AICT_Bids_and_Tenders__c bids=new AICT_Bids_and_Tenders__c();
+            bids.Name=
+            bids.Bids_and_Tenders_External_Id__c=
+            bids.Bids_and_Tenders_Name__c=
+            bids.Buying_Group__c=
+            bids.End_Date__c=
+           // bids.Hospital__c=
+           // bids.Primary_SAP_Number__c=
+          //  bids.SAP_Name__c=
+           // bids.Start_Date__c=
+            bidslst.add(bids);
+        }
+        return bidslst;
+        
+        
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+visualforce complete:
+public class FileUploader {
+
+    public string nameFile{get;set;}
+    public Blob contentFile{get;set;}
+    String[] filelines = new String[]{};
+    Map<String,Map<String,Integer>> mm=new   Map<String,Map<String,Integer>>();
+    Set<String> str=new Set<String>();
+    
+    list<Maserobject__c> mastupload;
+   
+    
+    
+    
+    
+    public Pagereference ReadFile()
+    {
+        nameFile=contentFile.toString();
+        filelines = nameFile.split('\n');
+        //System.debug(filelines);
+        
+        mastupload= new list<Maserobject__c>();
+        
+        for (Integer i=1;i<filelines.size();i++)
+        {
+            String[] inputvalues = new String[]{};
+            inputvalues = filelines[i].split(',');
+inputvalues[3]=inputvalues[3].trim();
+inputvalues[2]=inputvalues[2].trim();
+//inputvalues[3]=inputvalues[3].trim();
+           // system.debug(inputvalues);
+            Maserobject__c a = new Maserobject__c();
+            ChildObject1__c a1 = new ChildObject1__c();
+            ChildObject2__c a2 = new ChildObject2__c();
+            
+
+           if(str.add(inputvalues[0].trim())){
+           system.debug('new name');
+          
+             a.Name = inputvalues[0];
+             insert a;
+             a2.Master_ObName__c=inputvalues[0];
+             a2.Name= inputvalues[1]; 
+              a2.Product__c= inputvalues[1]; 
+             a2.ActualBidQuantity__c=integer.valueof(inputvalues[3].trim());
+             
+             a1.Name= inputvalues[1]; 
+            a1.Master_ObName__c=inputvalues[0];
+            a1.Product__c= inputvalues[1];  
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+          list<Maserobject__c>     pp= [select id from Maserobject__c where Name=:inputvalues[0]];
+           
+          
+           
+           a1.Maserobject__c=pp[0].id;
+            a2.Maserobject__c=pp[0].id;
+            insert a1;
+            insert a2;
+           
+          Map<String,Integer> m4=new Map<String,integer>();
+          m4.put(inputvalues[1],integer.valueof(inputvalues[3])) ;
+          mm.put(inputvalues[0],m4);
+         system.debug(mm);
+           
+           
+          // Map<Integer,Integer> m=new Map<Integer,integer>();
+         //  m.put(integer.valueof(inputvalues[2].trim()), integer.valueof(inputvalues[3]));
+          // mm.put(inputvalues[0],m);
+           mastupload.add(a);
+         
+         }
+           else{
+           
+                 system.debug('existing name');
+               Map<String,Integer> m5=new Map<String,Integer>();
+               mm=mm.clone();
+               m5=mm.get(inputvalues[0]);
+               Set<String> product=m5.keySet();
+               Set<String> prod=new Set<String>(product);
+           if(prod.add(inputvalues[1])){
+            system.debug('New product');
+            Map<String,Integer> m6=new Map<String,integer>();
+           m6.put(inputvalues[1],integer.valueof(inputvalues[3])) ;
+                mm=mm.clone();
+             mm.put(inputvalues[0],m6);
+        //   system.debug(mm);
+            a1.Master_ObName__c=inputvalues[0];
+            a1.Product__c= inputvalues[1];  
+            a1.Name= inputvalues[1];  
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+            
+             a2.Master_ObName__c=inputvalues[0];
+             a2.Name= inputvalues[1];
+             a2.Product__c= inputvalues[1]; 
+             a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+            list<Maserobject__c>    pp=[select id from Maserobject__c where Name=:inputvalues[0]];
+           
+            a1.Maserobject__c=pp[0].id;
+            a2.Maserobject__c=pp[0].id;
+           insert a1;
+           insert a2;
+           
+           }else{
+            system.debug('Existing Product');   
+            a2.Master_ObName__c=inputvalues[0];
+            a2.Name= inputvalues[1];
+            a2.Product__c= inputvalues[1]; 
+            a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+            Maserobject__c     pp= [select id from Maserobject__c where Name=:inputvalues[0]];
+           a2.Maserobject__c= pp.id;
+             insert a2;
+           
+               Map<String,Integer> m7=new Map<String,Integer>();
+               mm=mm.clone();
+              m7= mm.get(inputvalues[0]);
+              Integer ii=m7.get(inputvalues[1]);
+              // Integer ii=m.get(integer.valueof(inputvalues[2]));
+          
+             ii=ii+integer.valueof(inputvalues[3]);
+             m7.put(inputvalues[1],ii);
+             system.debug(m7);
+           mm.put(inputvalues[0],m7);
+
+            
+           }
+ 
+           
+           
+           
+           
+           
+           
+           
+           
+          /* if(str1.add(inputvalues[1])){
+
+            a1.Product__c= inputvalues[1];  
+                 
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+             for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+              
+  
+            a1.Maserobject__c=pp.id;
+           
+           }
+                    
+            childupload1.add(a1);
+          
+            }
+           
+            a2.Product__c= inputvalues[1]; 
+            a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+            for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+   
+  
+            a2.Maserobject__c=pp.id;
+           
+           }
+           Map<Integer,Integer> m=new Map<Integer,integer>();
+        m=   mm.get(inputvalues[0]);
+          Integer ii=m.get(integer.valueof(inputvalues[2]));
+           if(ii!=null){
+             ii=ii+integer.valueof(inputvalues[3]);
+             m.put(integer.valueof(inputvalues[2]),ii);
+            // system.debug(ii);
+           mm.put(inputvalues[0],m);
+           }else{
+           
+           m.put(integer.valueof(inputvalues[2]),integer.valueof(inputvalues[3]));
+           mm.put(inputvalues[0],m);
+           }
+ 
+           
+            childupload2.add(a2); */
+           }
+                       
+   }
+        try{
+        
+        Set<String> ss=mm.keySet();
+        for(String str:ss){
+            Map<String,Integer>  ma=mm.get(str);
+        Set<String>  in1=ma.keySet();
+           for(String in9:in1){
+           Integer in11=ma.get(in9);
+           System.debug(in11);
+           list<ChildObject1__c> ch=[select TotalBidQuantity__c from ChildObject1__c where Product__c=:in9 and Master_ObName__c=:str];
+           if(in11>ch[0].TotalBidQuantity__c){
+                    System.debug('hi i am in this if block');
+           delete [select Name from Maserobject__c where Name=:str];
+           
+           
+           }else{
+           
+         //  insert childupload1;
+     // insert childupload2;
+           }
+           }
+            
+            }
+            
+        
+        
+     // insert mastupload;
+      
+        }
+        catch (Exception e)
+        {
+            ApexPages.Message errormsg = new ApexPages.Message(ApexPages.severity.ERROR,'An error has occured. Please check the template or try again later');
+            ApexPages.addMessage(errormsg);
+        }    
+        return null;
+    }
+    
+    public List<Maserobject__c> getUploadedMaster() {
+ if (mastupload!= NULL)
+            if (mastupload.size() > 0)
+                return mastupload;
+            else
+                return null;                    
+        else
+            return null;
+    }
+    
+    
+    
+    public List<Maserobject__c> getuploadedAccounts()
+    {
+        if (mastupload!= NULL)
+            if (mastupload.size() > 0)
+                return mastupload;
+            else
+                return null;                    
+        else
+            return null;
+    }            
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+public class FileUploader {
+ public string nameFile{get;set;}
+    public Blob contentFile{get;set;}
+    String[] filelines = new String[]{};
+    Map<String,Map<String,Integer>> mm=new   Map<String,Map<String,Integer>>();
+    Set<String> str=new Set<String>();
+    
+    list<Maserobject__c> mastupload;
+    List<ChildObject1__c> childupload1;
+    List<ChildObject2__c> childupload2;
+    
+    
+    
+    
+    public Pagereference ReadFile()
+    {
+        nameFile=contentFile.toString();
+        filelines = nameFile.split('\n');
+        //System.debug(filelines);
+        childupload2= new List<ChildObject2__c>();
+        mastupload= new list<Maserobject__c>();
+        childupload1= new List<ChildObject1__c>();
+        for (Integer i=1;i<filelines.size();i++)
+        {
+            String[] inputvalues = new String[]{};
+            inputvalues = filelines[i].split(',');
+inputvalues[3]=inputvalues[3].trim();
+inputvalues[2]=inputvalues[2].trim();
+//inputvalues[3]=inputvalues[3].trim();
+           // system.debug(inputvalues);
+            Maserobject__c a = new Maserobject__c();
+            ChildObject1__c a1 = new ChildObject1__c();
+            ChildObject2__c a2 = new ChildObject2__c();
+            
+
+           if(str.add(inputvalues[0].trim())){
+           system.debug('new name');
+          
+             a.Name = inputvalues[0];
+             insert a;
+             a2.Master_ObName__c=inputvalues[0];
+                 a2.Name= inputvalues[1]; 
+              a2.Product__c= inputvalues[1]; 
+             
+            a2.ActualBidQuantity__c=integer.valueof(inputvalues[3].trim());
+            a1.Master_ObName__c=inputvalues[0];
+            a1.Product__c= inputvalues[1];  
+                 
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+list<Maserobject__c>     pp=       [select id from Maserobject__c where Name=:inputvalues[0]];
+           
+          
+           
+           a1.Maserobject__c=pp[0].id;
+            a2.Maserobject__c=pp[0].id;
+              insert a1;
+            insert a2;
+           
+           
+           
+           
+            
+         
+           
+            
+           
+            Map<String,Integer> m4=new Map<String,integer>();
+         m4.put(inputvalues[1],integer.valueof(inputvalues[3])) ;
+           mm.put(inputvalues[0],m4);
+            system.debug(mm);
+           
+           
+          // Map<Integer,Integer> m=new Map<Integer,integer>();
+         //  m.put(integer.valueof(inputvalues[2].trim()), integer.valueof(inputvalues[3]));
+          // mm.put(inputvalues[0],m);
+           mastupload.add(a);
+          childupload1.add(a1);
+             childupload2.add(a2); 
+           
+           
+         }
+           else{
+           
+                 system.debug('existing name');
+               Map<String,Integer> m5=new Map<String,Integer>();
+               mm=mm.clone();
+               m5=mm.get(inputvalues[0]);
+               Set<String> product=m5.keySet();
+               Set<String> prod=new Set<String>(product);
+           if(prod.add(inputvalues[1])){
+            system.debug('New product');
+            Map<String,Integer> m6=new Map<String,integer>();
+           m6.put(inputvalues[1],integer.valueof(inputvalues[3])) ;
+                mm=mm.clone();
+             mm.put(inputvalues[0],m6);
+        //   system.debug(mm);
+                     a1.Master_ObName__c=inputvalues[0];
+            a1.Product__c= inputvalues[1];  
+                a1.Name= inputvalues[1];  
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+                         a2.Master_ObName__c=inputvalues[0];
+             a2.Name= inputvalues[1];
+             a2.Product__c= inputvalues[1]; 
+            a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+             Maserobject__c    pp=       [select id from Maserobject__c where Name=:inputvalues[0]];
+           
+            a1.Maserobject__c=pp.id;
+            a2.Maserobject__c=pp.id;
+           insert a1;
+            insert a2;
+           
+           
+            childupload2.add(a2);    
+            childupload1.add(a1);
+               
+          
+           }else{
+                        a2.Master_ObName__c=inputvalues[0];
+            a2.Name= inputvalues[1];
+            a2.Product__c= inputvalues[1]; 
+            a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+            Maserobject__c     pp= [select id from Maserobject__c where Name=:inputvalues[0]];
+           a2.Maserobject__c= pp.id;
+                      insert a2;
+              system.debug('Existing Product');
+               Map<String,Integer> m7=new Map<String,Integer>();
+               mm=mm.clone();
+              m7= mm.get(inputvalues[0]);
+                  
+               Integer ii=m7.get(inputvalues[1]);
+              // Integer ii=m.get(integer.valueof(inputvalues[2]));
+          
+             ii=ii+integer.valueof(inputvalues[3]);
+             m7.put(inputvalues[1],ii);
+             system.debug(m7);
+           mm.put(inputvalues[0],m7);
+
+             childupload2.add(a2);    
+           }
+ 
+           
+           
+           
+           
+           
+           
+           
+           
+          /* if(str1.add(inputvalues[1])){
+
+            a1.Product__c= inputvalues[1];  
+                 
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+             for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+              
+  
+            a1.Maserobject__c=pp.id;
+           
+           }
+                    
+            childupload1.add(a1);
+          
+            }
+           
+            a2.Product__c= inputvalues[1]; 
+            a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+            for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+   
+  
+            a2.Maserobject__c=pp.id;
+           
+           }
+           Map<Integer,Integer> m=new Map<Integer,integer>();
+        m=   mm.get(inputvalues[0]);
+          Integer ii=m.get(integer.valueof(inputvalues[2]));
+           if(ii!=null){
+             ii=ii+integer.valueof(inputvalues[3]);
+             m.put(integer.valueof(inputvalues[2]),ii);
+            // system.debug(ii);
+           mm.put(inputvalues[0],m);
+           }else{
+           
+           m.put(integer.valueof(inputvalues[2]),integer.valueof(inputvalues[3]));
+           mm.put(inputvalues[0],m);
+           }
+ 
+           
+            childupload2.add(a2); */
+           }
+                       
+   }
+        try{
+        
+        Set<String> ss=mm.keySet();
+        for(String str:ss){
+            Map<String,Integer>  ma=mm.get(str);
+        Set<String>  in1=ma.keySet();
+           for(String in9:in1){
+           Integer in11=ma.get(in9);
+           System.debug(in11);
+           list<ChildObject1__c> ch=[select TotalBidQuantity__c from ChildObject1__c where Product__c=:in9 and Master_ObName__c=:str];
+           if(in11>ch[0].TotalBidQuantity__c){
+                    System.debug('hi i am in this if block');
+           delete [select Name from Maserobject__c where Name=:str];
+           
+           
+           }else{
+           
+         //  insert childupload1;
+     // insert childupload2;
+           }
+           }
+            
+            }
+            
+        
+        
+     // insert mastupload;
+      
+        }
+        catch (Exception e)
+        {
+            ApexPages.Message errormsg = new ApexPages.Message(ApexPages.severity.ERROR,'An error has occured. Please check the template or try again later');
+            ApexPages.addMessage(errormsg);
+        }    
+        return null;
+    }
+    
+    public List<Maserobject__c> getuploadedAccounts()
+    {
+        if (mastupload!= NULL)
+            if (mastupload.size() > 0)
+                return mastupload;
+            else
+                return null;                    
+        else
+            return null;
+    }            
+
+
+
+
+}
+visualforce page:
+
+<apex:page sidebar="false" controller="FileUploader">
+   <apex:form >
+      <apex:sectionHeader title="Upload data from CSV file"/>
+      <apex:pagemessages />
+      <apex:pageBlock >
+             <center>
+              <apex:inputFile value="{!contentFile}" filename="{!nameFile}" /> <apex:commandButton action="{!ReadFile}" value="Upload File" id="theButton" style="width:70px;"/>
+              <br/> <br/> <font color="red"> <b>Note: Please use the standard template to upload Accounts.</b> </font>
+             </center>  
+      
+      
+      <apex:pageblocktable value="{!uploadedAccounts}" var="acc" rendered="{!NOT(ISNULL(uploadedAccounts))}">
+          <apex:column headerValue="Master Name">
+              <apex:outputField value="{!acc.Name}"/>
+          </apex:column>
+         
+      </apex:pageblocktable> 
+      
+      </apex:pageBlock>       
+   </apex:form>   
+
+</apex:page>
+
+
+
+
+
+
+visualforce:
+
+public class FileUploader {
+ public string nameFile{get;set;}
+    public Blob contentFile{get;set;}
+    String[] filelines = new String[]{};
+    Map<String,Map<Integer,Integer>> mm=new   Map<String,Map<Integer,Integer>>();
+    Set<String> str=new Set<String>();
+     Set<String> str1=new Set<String>();
+    list<Maserobject__c> mastupload;
+    List<ChildObject1__c> childupload1;
+    List<ChildObject2__c> childupload2;
+    
+    
+    
+    
+    public Pagereference ReadFile()
+    {
+        nameFile=contentFile.toString();
+        filelines = nameFile.split('\n');
+        childupload2= new List<ChildObject2__c>();
+        mastupload= new list<Maserobject__c>();
+        childupload1= new List<ChildObject1__c>();
+        for (Integer i=1;i<filelines.size();i++)
+        {
+            String[] inputvalues = new String[]{};
+            inputvalues = filelines[i].split(',');
+inputvalues[3]=inputvalues[3].trim();
+inputvalues[2]=inputvalues[2].trim();
+//inputvalues[3]=inputvalues[3].trim();
+            system.debug(inputvalues);
+            Maserobject__c a = new Maserobject__c();
+            ChildObject1__c a1 = new ChildObject1__c();
+            ChildObject2__c a2 = new ChildObject2__c();
+            
+
+           if(str.add(inputvalues[0])){
+          
+             a.Name = inputvalues[0];
+             insert a;
+              a2.Product__c= inputvalues[1]; 
+              integer intp=integer.valueof(inputvalues[3].trim());
+            a2.ActualBidQuantity__c=intp;
+           
+            a1.Product__c= inputvalues[1];  
+                 
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+            for(Maserobject__c pp : [select id from Maserobject__c where Name=:inputvalues[0]]){
+   
+            a1.Maserobject__c=pp.id;
+            a2.Maserobject__c=pp.id;
+           
+           }
+           str1.add(inputvalues[1]);
+           Map<Integer,Integer> m=new Map<Integer,integer>();
+           m.put(integer.valueof(inputvalues[2].trim()), integer.valueof(inputvalues[3]));
+           mm.put(inputvalues[0],m);
+           mastupload.add(a);
+          childupload1.add(a1);
+             childupload2.add(a2); 
+           
+           
+         }
+           else{
+           
+           if(str1.add(inputvalues[1])){
+
+            a1.Product__c= inputvalues[1];  
+                 
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+             for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+              
+  
+            a1.Maserobject__c=pp.id;
+           
+           }
+                    
+            childupload1.add(a1);
+          
+            }
+           
+            a2.Product__c= inputvalues[1]; 
+            a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+            for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+   
+  
+            a2.Maserobject__c=pp.id;
+           
+           }
+           Map<Integer,Integer> m=new Map<Integer,integer>();
+        m=   mm.get(inputvalues[0]);
+          Integer ii=m.get(integer.valueof(inputvalues[2]));
+           if(ii!=null){
+             ii=ii+integer.valueof(inputvalues[3]);
+             m.put(integer.valueof(inputvalues[2]),ii);
+            // system.debug(ii);
+           mm.put(inputvalues[0],m);
+           }else{
+           
+           m.put(integer.valueof(inputvalues[2]),integer.valueof(inputvalues[3]));
+           mm.put(inputvalues[0],m);
+           }
+ 
+           
+            childupload2.add(a2); 
+           }
+                       
+   }
+        try{
+        
+        Set<String> ss=mm.keySet();
+        for(String str:ss){
+            Map<Integer,Integer>  ma=mm.get(str);
+        Set<Integer>  in1=ma.keySet();
+           for(Integer in9:in1){
+           Integer in11=ma.get(in9);
+           System.debug(in11);
+           if(in11>in9){
+                    System.debug('hi i am in this if block');
+           delete [select Name from Maserobject__c where Name=:str];
+           
+           
+           }else{
+           
+           insert childupload1;
+      insert childupload2;
+           }
+           }
+            
+            }
+            
+        
+        
+     // insert mastupload;
+      
+        }
+        catch (Exception e)
+        {
+            ApexPages.Message errormsg = new ApexPages.Message(ApexPages.severity.ERROR,'An error has occured. Please check the template or try again later');
+            ApexPages.addMessage(errormsg);
+        }    
+        return null;
+    }
+    
+    public List<Maserobject__c> getuploadedAccounts()
+    {
+        if (mastupload!= NULL)
+            if (mastupload.size() > 0)
+                return mastupload;
+            else
+                return null;                    
+        else
+            return null;
+    }            
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vsualforce page devekper console
+
+
+public class FileUploader {
+ public string nameFile{get;set;}
+    public Blob contentFile{get;set;}
+    String[] filelines = new String[]{};
+    Map<String,Map<String,Integer>> mm=new   Map<String,Map<String,Integer>>();
+    Set<String> str=new Set<String>();
+    
+    list<Maserobject__c> mastupload;
+    List<ChildObject1__c> childupload1;
+    List<ChildObject2__c> childupload2;
+    
+    
+    
+    
+    public Pagereference ReadFile()
+    {
+        nameFile=contentFile.toString();
+        filelines = nameFile.split('\n');
+        childupload2= new List<ChildObject2__c>();
+        mastupload= new list<Maserobject__c>();
+        childupload1= new List<ChildObject1__c>();
+        for (Integer i=1;i<filelines.size();i++)
+        {
+            String[] inputvalues = new String[]{};
+            inputvalues = filelines[i].split(',');
+inputvalues[3]=inputvalues[3].trim();
+inputvalues[2]=inputvalues[2].trim();
+//inputvalues[3]=inputvalues[3].trim();
+            system.debug(inputvalues);
+            Maserobject__c a = new Maserobject__c();
+            ChildObject1__c a1 = new ChildObject1__c();
+            ChildObject2__c a2 = new ChildObject2__c();
+            
+
+           if(str.add(inputvalues[0])){
+          
+             a.Name = inputvalues[0];
+             insert a;
+              a2.Product__c= inputvalues[1]; 
+             
+            a2.ActualBidQuantity__c=integer.valueof(inputvalues[3].trim());
+           
+            a1.Product__c= inputvalues[1];  
+                 
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+            for(Maserobject__c pp : [select id from Maserobject__c where Name=:inputvalues[0]]){
+   
+            a1.Maserobject__c=pp.id;
+            a2.Maserobject__c=pp.id;
+           
+           }
+           
+            Map<String,Integer> m4=new Map<String,integer>();
+         m4.put(inputvalues[1],integer.valueof(inputvalues[3])) ;
+           mm.put(inputvalues[0],m4);
+            // system.debug(mm);
+           
+           
+          // Map<Integer,Integer> m=new Map<Integer,integer>();
+         //  m.put(integer.valueof(inputvalues[2].trim()), integer.valueof(inputvalues[3]));
+          // mm.put(inputvalues[0],m);
+          // mastupload.add(a);
+          childupload1.add(a1);
+             childupload2.add(a2); 
+           
+           
+         }
+           else{
+           
+                 system.debug('existing name');
+               Map<String,Integer> m5=new Map<String,Integer>();
+               mm=mm.clone();
+               m5=mm.get(inputvalues[0]);
+               Set<String> product=m5.keySet();
+               Set<String> prod=new Set<String>(product);
+           if(prod.add(inputvalues[1])){
+            system.debug('New product');
+            Map<String,Integer> m6=new Map<String,integer>();
+           m6.put(inputvalues[1],integer.valueof(inputvalues[3])) ;
+                mm=mm.clone();
+             mm.put(inputvalues[0],m6);
+        //   system.debug(mm);
+            a1.Product__c= inputvalues[1];  
+                 
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+             for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+              
+  
+            a1.Maserobject__c=pp.id;
+           
+           }
+            a2.Product__c= inputvalues[1]; 
+            a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+            for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+   
+  
+            a2.Maserobject__c=pp.id;
+           
+           }
+            childupload2.add(a2);    
+            childupload1.add(a1);
+               
+          
+           }else{
+            a2.Product__c= inputvalues[1]; 
+            a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+            for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+   
+  
+            a2.Maserobject__c=pp.id;
+           
+           }
+              system.debug('Existing Product');
+               Map<String,Integer> m7=new Map<String,Integer>();
+               mm=mm.clone();
+              m7= mm.get(inputvalues[0]);
+                  
+               Integer ii=m7.get(inputvalues[1]);
+              // Integer ii=m.get(integer.valueof(inputvalues[2]));
+          
+             ii=ii+integer.valueof(inputvalues[3]);
+             m7.put(inputvalues[1],ii);
+             system.debug(m7);
+           mm.put(inputvalues[0],m7);
+             childupload2.add(a2);    
+           }
+ 
+           
+           
+           
+           
+           
+           
+           
+           
+          /* if(str1.add(inputvalues[1])){
+
+            a1.Product__c= inputvalues[1];  
+                 
+            a1.TotalBidQuantity__c= integer.valueof(inputvalues[2]);
+             for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+              
+  
+            a1.Maserobject__c=pp.id;
+           
+           }
+                    
+            childupload1.add(a1);
+          
+            }
+           
+            a2.Product__c= inputvalues[1]; 
+            a2.ActualBidQuantity__c= integer.valueof(inputvalues[3]);
+            for(Maserobject__c pp : [select id,name from Maserobject__c where Name=:inputvalues[0]]){
+   
+  
+            a2.Maserobject__c=pp.id;
+           
+           }
+           Map<Integer,Integer> m=new Map<Integer,integer>();
+        m=   mm.get(inputvalues[0]);
+          Integer ii=m.get(integer.valueof(inputvalues[2]));
+           if(ii!=null){
+             ii=ii+integer.valueof(inputvalues[3]);
+             m.put(integer.valueof(inputvalues[2]),ii);
+            // system.debug(ii);
+           mm.put(inputvalues[0],m);
+           }else{
+           
+           m.put(integer.valueof(inputvalues[2]),integer.valueof(inputvalues[3]));
+           mm.put(inputvalues[0],m);
+           }
+ 
+           
+            childupload2.add(a2); */
+           }
+                       
+   }
+        try{
+        
+        Set<String> ss=mm.keySet();
+        for(String str:ss){
+            Map<String,Integer>  ma=mm.get(str);
+        Set<String>  in1=ma.keySet();
+           for(String in9:in1){
+           Integer in11=ma.get(in9);
+           System.debug(in11);
+           list<ChildObject1__c> ch=[select TotalBidQuantity__c from ChildObject1__c where Product__c=:in9];
+           if(in11>ch[0].TotalBidQuantity__c){
+                    System.debug('hi i am in this if block');
+           delete [select Name from Maserobject__c where Name=:str];
+           
+           
+           }else{
+           
+           insert childupload1;
+      insert childupload2;
+           }
+           }
+            
+            }
+            
+        
+        
+     // insert mastupload;
+      
+        }
+        catch (Exception e)
+        {
+            ApexPages.Message errormsg = new ApexPages.Message(ApexPages.severity.ERROR,'An error has occured. Please check the template or try again later');
+            ApexPages.addMessage(errormsg);
+        }    
+        return null;
+    }
+    
+    public List<Maserobject__c> getuploadedAccounts()
+    {
+        if (mastupload!= NULL)
+            if (mastupload.size() > 0)
+                return mastupload;
+            else
+                return null;                    
+        else
+            return null;
+    }            
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1.Creating custom meta data with two fields profile name and vf page redirect to vf page by selecting profile name.
+
+=> VF_Task
+
+<apex:page controller="clsTask">
+<apex:form >
+ <apex:pageblock >
+ <apex:pageblockButtons >
+ 
+ 
+ </apex:pageblockButtons>
+ <apex:pageblockSection >
+<center>
+<apex:selectList value="{!selectedVFpage}" size="1" multiselect="false"  >
+                 <apex:selectOptions value="{!ListOfProfile}" />
+</apex:selectList></center>
+                                 
+ <center>  <apex:commandButton value="Redirect to Selected profile page" action="{!save}"   /></center>
+
+</apex:pageblockSection>
+ 
+</apex:pageblock>
+ </apex:form>
+</apex:page>
+
+=>clsTask
+public class clsTask {
+ public String selectedVFpage{ get; set; }
+    public List<SelectOption> getListOfProfile() {
+        List<task1__mdt> Users = [select Profilename__c,VFpage__c  from task1__mdt] ;
+               List<SelectOption> UserOptionList = new List<SelectOption>();
+               UserOptionList .add(new SelectOption( ' ' ,'---Select---'));
+               for(task1__mdt u : Users )
+               {
+                          UserOptionList .add(new SelectOption(u.VFpage__c, u.Profilename__c));
+               }
+              return UserOptionList ;
+    }
+
+
+   public PageReference save() {
+ PageReference pageRef = new PageReference('/apex/'+selectedVFpage+'');
+            return pageRef;
+    }
+
+
+}
+
+=>Developer_VF
+
+<apex:page >
+ <style>
+ h1{
+ color:blue;
+ font-size:20px;
+ 
+ }
+ 
+ </style>
+ <apex:pageblock >
+ 
+<apex:pageblockSection >
+ <center><h1>Congratulations you are on Developer page</h1></center>
+ </apex:pageblockSection>
+</apex:pageblock>
+ 
+</apex:page>
+
+=>Admin_vf
+
+<apex:page >
+ <style>
+ h1{
+ color:blue;
+ font-size:20px;
+ 
+ }
+ 
+ </style>
+
+<apex:pageblock >
+ 
+<apex:pageblockSection >
+ <center><h1>Congratulations you are on Admin page</h1></center>
+ </apex:pageblockSection>
+</apex:pageblock>
+ 
+</apex:page>
+
+=> Sales_vf
+
+<apex:page >
+ <style>
+ h1{
+ color:blue;
+ font-size:20px;
+ 
+ }
+ 
+ </style>
+
+<apex:pageblock >
+ 
+<apex:pageblockSection >
+ <center><h1>Congratulations you are on Developer page</h1></center>
+ </apex:pageblockSection>
+</apex:pageblock>
+ 
+</apex:page>
