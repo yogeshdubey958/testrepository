@@ -1,0 +1,197 @@
+<apex:page controller="MMWT_WithdrawlRequestForm_Cntlr" >
+    <style type="text/css">
+        .dateFormat{
+           visibility:hidden;
+        }    
+    </style>
+  <apex:form >
+      <apex:pageBlock title="Add Items">
+          <apex:pageBlockSection columns="8">
+              <apex:pageblockSectionItem ><apex:outputLabel >Item Name</apex:outputLabel></apex:pageblockSectionItem>
+              <apex:pageblockSectionItem ><apex:outputLabel >Item Code</apex:outputLabel></apex:pageblockSectionItem>
+              <apex:pageblockSectionItem ><apex:outputLabel >Item Description</apex:outputLabel></apex:pageblockSectionItem>
+              <apex:pageblockSectionItem ><apex:outputLabel >Affected Teams</apex:outputLabel></apex:pageblockSectionItem>
+              <apex:pageblockSectionItem ><apex:outputLabel >Required Action</apex:outputLabel></apex:pageblockSectionItem>
+              <apex:pageblockSectionItem ><apex:outputLabel >Replacement Item Code</apex:outputLabel></apex:pageblockSectionItem>
+              <apex:pageblockSectionItem ><apex:outputLabel >Date when Replacement is Available</apex:outputLabel></apex:pageblockSectionItem>
+              <apex:pageblocksectionItem ></apex:pageblocksectionItem>
+             
+              <apex:repeat value="{!itemList}" var="iLst">
+
+                  <apex:pageblockSectionItem >                    
+                      <apex:inputField styleClass="jq_req" required="true" value="{!iLst.LastName}"></apex:inputField>
+                  </apex:pageblockSectionItem>
+                  <apex:pageblockSectionItem >
+                      <apex:inputField styleClass="jq_req" required="true" value="{!iLst.Phone}"></apex:inputField>
+                  </apex:pageblockSectionItem>
+                  <apex:pageblockSectionItem >
+                      <apex:inputField styleClass="jq_req" value="{!iLst.id}"></apex:inputField>
+                  </apex:pageblockSectionItem>
+                 <apex:pageblockSectionItem >
+                   <apex:commandLink action="{!removeItems}" value="RemoveItems" styleClass="btn" style="text-decoration:none" Rendered="{!showRemoveItembtn}">
+                      <apex:param assignTo="{!delrecid}" value="{!iLst.id}" name="{!iLst.id}"/>
+                   </apex:commandLink>
+                     </apex:pageblockSectionItem>
+                  
+                    <!--apex:commandButton immediate="true" rendered="{!rSection.GMAX_Rating_Number__c > 1}"  image="{!URLFOR($Resource.GMAX_StaticResource,'GMAX_StaticResource/Images/delete.png')}" style="width:15px;height:15px;bgcolor:border:0px"  reRender="ratingPanel"  action="{!removeRating}">
+                     <apex:param name="ratingNum" value="{!rSection.GMAX_Rating_Number__c}"/>   
+                    </apex:commandButton-->
+                    
+              </apex:repeat>
+              <apex:pageBlockSection columns="2">
+              <apex:pageblockSectionItem >
+                      <apex:commandButton value="Add" action="{!AddItems}"/>
+                  </apex:pageblockSectionItem>
+                  
+                  
+                  </apex:pageBlockSection>
+                 
+          </apex:pageBlockSection>
+          <apex:outputText value="{!check}"></apex:outputText>
+        
+          
+          <Apex:pageBlockButtons location="Bottom">
+            <apex:actionRegion >
+            <apex:commandButton value="Done" action="{!BacktoWithrlpage}">
+            <apex:param assignTo="{!Email}" value="{!Email}" />
+            </apex:commandButton>
+                      </apex:actionRegion>
+          </Apex:pageBlockButtons>
+
+      </apex:pageBlock>
+  </apex:form>
+</apex:page>
+
+
+/////
+
+
+
+
+
+public with sharing class MMWT_WithdrawlRequestForm_Cntlr {
+
+    public String getEmail() {
+        return null;
+    }
+ 
+
+
+   
+
+
+   // public String iLst { get; set; }
+
+    public PageReference BacktoWithrlpage() {
+    
+        
+     
+     delete itemList;
+     
+       
+        return null ;
+    }
+
+
+  
+ public Boolean showRemoveItembtn{get;set;}
+  public string value {get;set;}
+  
+    public String getCheck() {
+     for(Contact c:itemList){
+     //value+=c.LastName;
+     }
+    
+        return value;
+    }
+
+
+    public list<Contact> itemList { get; set; }
+public Account wReqObj{get;set;}
+    public String subject { get; set; }
+ public String selectedname { get; set; }
+ 
+ 
+ public MMWT_WithdrawlRequestForm_Cntlr(){
+       
+        wReqObj=new Account();
+        itemList = new List<Contact>();
+        Contact itmObj =  new Contact();
+       
+        
+       // itmObj.LastName='hi2';
+       // itmObj.Phone='hi2';
+        //insert itmObj;
+        itemList.add(itmObj);
+         
+    }
+     public pageReference AddItems(){
+       
+       
+        Contact itmObj =  new Contact();
+        
+        
+        itmObj.LastName='Enter';
+        itmObj.Phone='Enter';
+       // insert itmObj;
+        if(itemList.size()<50){
+            itemList.add(itmObj);
+            upsert itemList;
+           
+        }
+        if(itemList.size()==1){
+    showRemoveItembtn =false;
+    }else{
+        showRemoveItembtn =true;}
+        return null;
+    }
+    public Id delrecid{get; set;}
+    
+    public void removeItems(){
+  // insert itemList;
+    
+    System.debug(delrecid);
+    if(delrecid!=null){
+     Contact delobj = [select id FROM Contact where  id=:delrecid];
+    delete delobj;
+    }else{
+    
+    itemList.remove(itemList.size()-1);
+    
+    }
+    for(Integer index = 0; index < itemList.size(); index++) {
+        if(itemList[index].Id == delRecId) {
+            itemList.remove(index);
+        }
+ }
+    
+   // 
+    if(itemList.size()==1){
+    showRemoveItembtn =false;
+    }
+       // string ratingN}um=ApexPages.currentPage().getParameters().get('ratingNum');
+      //  ratingSection.remove(Integer.valueof(ratingNum)-1);
+       // for(Integer i=Integer.valueof(ratingNum)-1; i<ratingSection.size();i++){
+      //  ratingSection[i].GMAX_Rating_Number__c=ratingSection[i].GMAX_Rating_Number__c-1;
+       // }
+    }
+ 
+    public List<Selectoption> getPublicgrpname() {
+          wReqObj=  new Account();
+       List<Selectoption> lstnamesel = new List<selectoption>();
+            lstnamesel.add(new selectOption('', '- None -'));
+            for(Account acc :[SELECT id,name,phone,type,industry FROM Account]){
+            lstnamesel.add(new selectoption(acc.id,acc.name));
+             wReqObj.Name=acc.Name;
+             wReqObj.id=acc.id;
+            }
+         // list<Account> aa  = [SELECT id,name,phone,type,industry FROM Account];
+          //wReqObj.Name=aa.get(1).Name;
+         
+            subject='put subject here';
+            return lstnamesel;
+    }
+
+
+   
+}
